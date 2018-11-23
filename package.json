@@ -1,0 +1,10 @@
+{
+  "name": "quantum",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Benjamin San Souci <benjamin.sansouci@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "bsb-native": "^4.0.7000"
+  }
+}

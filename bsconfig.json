@@ -1,0 +1,40 @@
+{
+  "name": "quantum",
+  "sources": [{
+    "dir": "src",
+    "ppx": ["Cppx"]
+  }, {
+    "dir": "ppx",
+    "type": "ppx"
+  }, 
+  // {
+  //   "dir": "vendor",
+  //   "subdirs": [{
+  //     "dir": "FrontC-V_3_4",
+  //     "subdirs": [{
+  //       "dir": "frontc"
+  //     }]
+  //   }]
+  // }
+],
+  "ocaml-dependencies": ["Unix"],
+  "entries": [{
+    "main-module": "Index",
+    "backend": ["native"],
+  }, {
+    "main-module": "Cppx",
+    "backend": "native",
+    "type": "ppx"
+  }, {
+    "main-module": "C_parser",
+    "backend": "native"
+  }],
+  "build-script": "build_script.re",
+  "static-libraries": [
+    "libquantum/lib/libquantum.a",
+    "/Users/benjamin/Desktop/quantum/vendor/FrontC-V_3_4/lib/ocaml/site-lib/frontc/frontc.cmxa",
+  ],
+  "ocaml-flags": ["-I", "/Users/benjamin/Desktop/quantum/vendor/FrontC-V_3_4/lib/ocaml/site-lib/frontc/"],
+  "refmt": 3,
+  // "c-linker-flags": ["-L/Users/benjamin/Desktop/quantum/libquantum/lib", "-lquantum"],
+}

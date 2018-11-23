@@ -1,0 +1,10 @@
+node_modules
+lib
+*.*a*
+*.cm*
+*.o
+**/*/bin
+calipso
+printc
+shor
+.merlin
