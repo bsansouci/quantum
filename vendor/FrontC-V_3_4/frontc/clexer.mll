@@ -339,7 +339,6 @@ rule initial =
 	|		'.'				{DOT}
 	|		"sizeof"		{SIZEOF}
 	|		ident			{scan_ident (Lexing.lexeme lexbuf)}
-	
 	|		eof				{EOF}
 	|		_				{display_error
 								"Invalid symbol"

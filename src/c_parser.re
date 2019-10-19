@@ -90,8 +90,6 @@ let print = str => {
   };
 };
 
-
-
 let get_sign = si =>
   switch (si) {
   | NO_SIGN => ""
@@ -108,8 +106,8 @@ let get_size = siz =>
   };
 
 /*let print = print_endline;
-let space = () => print_endline(" ");
-let new_line = () => print_endline("");*/
+  let space = () => print_endline(" ");
+  let new_line = () => print_endline("");*/
 
 let print_commas = (nl, fct, lst) => {
   let _ =
@@ -180,16 +178,14 @@ let escape_string = str => {
   build(0);
 };
 
-
-
 let rec print_type = (fct: unit => unit, typ: base_type) => {
   let base = get_base_type(typ);
   switch (base) {
-  | [@implicit_arity] BITFIELD(_, exp) =>
+  | BITFIELD(_, exp) =>
     fct();
     print(" : ");
     print_expression(exp, 1);
-  | [@implicit_arity] PROTO(typ', pars, ell) =>
+  | PROTO((typ', pars, ell)) =>
     print_type(
       _ => {
         if (base != typ) {
@@ -207,8 +203,7 @@ let rec print_type = (fct: unit => unit, typ: base_type) => {
       },
       typ',
     )
-  | [@implicit_arity] OLD_PROTO(typ', pars, ell) =>
-    ()
+  | OLD_PROTO((typ', pars, ell)) => ()
   | _ =>
     print_pointer(typ);
     fct();
@@ -244,38 +239,31 @@ and print_pointer = typ =>
   | VOLATILE(typ) =>
     print_pointer(typ);
     print(" volatile ");
-  | [@implicit_arity] ARRAY(typ, _) => print_pointer(typ)
+  | ARRAY(typ, _) => print_pointer(typ)
   | _ => /*print_base_type typ*/ ()
   }
-
 and print_array = typ =>
   switch (typ) {
-  | [@implicit_arity] ARRAY(typ, dim) =>
+  | ARRAY(typ, dim) =>
     print_array(typ);
     print("[");
     print_expression(dim, 0);
     print("]");
   | _ => ()
   }
-
-
 and get_base_type = typ =>
   switch (typ) {
   | PTR(typ) => get_base_type(typ)
   | RESTRICT_PTR(typ) => get_base_type(typ)
   | CONST(typ) => get_base_type(typ)
   | VOLATILE(typ) => get_base_type(typ)
-  | [@implicit_arity] ARRAY(typ, _) => get_base_type(typ)
+  | ARRAY(typ, _) => get_base_type(typ)
   | _ => typ
- }
- 
- and print_onlytype = typ => {
+  }
+and print_onlytype = typ => {
   print_base_type(typ);
   print_type(_ => (), typ);
 }
-
-
-
 and print_attributes = attrs =>
   switch (attrs) {
   | [] => ()
@@ -287,12 +275,11 @@ and print_attributes = attrs =>
       print(")) ");
     }
   }
-  
-  and print_attribute = attr =>
+and print_attribute = attr =>
   switch (attr) {
   | GNU_NONE => ()
   | GNU_ID(id) => print(id)
-  | [@implicit_arity] GNU_CALL(id, args) =>
+  | GNU_CALL(id, args) =>
     print(id);
     print("(");
     print_commas(false, print_attribute, args);
@@ -301,25 +288,21 @@ and print_attributes = attrs =>
   | GNU_EXTENSION => print("__extension__")
   | GNU_INLINE => print("__inline__")
   }
-
-
-
-
 and print_name = ((id, typ, attr, exp): name) => {
   print_type(_ => print(id), typ);
   print_attributes(attr);
   /*if (exp != NOTHING) {
-    space();
-    print("= ");
-    print_expression(exp, 1);
-  } else {
-    ();
-  };*/
+      space();
+      print("= ");
+      print_expression(exp, 1);
+    } else {
+      ();
+    };*/
 }
 and get_operator = exp =>
   switch (exp) {
   | NOTHING => ("", 16)
-  | [@implicit_arity] UNARY(op, _) =>
+  | UNARY(op, _) =>
     switch (op) {
     | MINUS => ("-", 13)
     | PLUS => ("+", 13)
@@ -332,7 +315,7 @@ and get_operator = exp =>
     | POSINCR => ("++", 14)
     | POSDECR => ("--", 14)
     }
-  | [@implicit_arity] BINARY(op, _, _) =>
+  | BINARY(op, _, _) =>
     switch (op) {
     | MUL => ("*", 12)
     | DIV => ("/", 12)
@@ -376,7 +359,7 @@ and get_operator = exp =>
   | MEMBEROF(_) => ("", 15)
   | MEMBEROFPTR(_) => ("", 15)
   | GNU_BODY(_) => ("", 17)
-  | [@implicit_arity] EXPR_LINE(expr, _, _) => get_operator(expr)
+  | EXPR_LINE(expr, _, _) => get_operator(expr)
   }
 and print_constant = cst =>
   switch (cst) {
@@ -389,7 +372,6 @@ and print_constant = cst =>
     print_comma_exps(exps);
     print("}");
   }
-
 and print_comma_exps = exps =>
   print_commas(false, exp => print_expression(exp, 1), exps)
 and print_expression = (exp: expression, lvl: int) => {
@@ -403,7 +385,7 @@ and print_expression = (exp: expression, lvl: int) => {
   let _ =
     switch (exp) {
     | NOTHING => ()
-    | [@implicit_arity] UNARY(op, exp') =>
+    | UNARY(op, exp') =>
       switch (op) {
       | POSINCR
       | POSDECR =>
@@ -413,7 +395,7 @@ and print_expression = (exp: expression, lvl: int) => {
         print(txt);
         print_expression(exp', lvl');
       }
-    | [@implicit_arity] BINARY(_, exp1, exp2) =>
+    | BINARY(_, exp1, exp2) =>
       /*if (op = SUB) && (lvl <= lvl') then print "(";*/
       print_expression(exp1, lvl');
       space();
@@ -422,7 +404,7 @@ and print_expression = (exp: expression, lvl: int) => {
       /*print_expression exp2 (if op = SUB then (lvl' + 1) else lvl');*/
       print_expression(exp2, lvl' + 1);
     /*if (op = SUB) && (lvl <= lvl') then print ")"*/
-    | [@implicit_arity] QUESTION(exp1, exp2, exp3) =>
+    | QUESTION(exp1, exp2, exp3) =>
       print_expression(exp1, 2);
       space();
       print("? ");
@@ -430,12 +412,12 @@ and print_expression = (exp: expression, lvl: int) => {
       space();
       print(": ");
       print_expression(exp3, 2);
-    | [@implicit_arity] CAST(typ, exp) =>
+    | CAST(typ, exp) =>
       print("(");
       print_onlytype(typ);
       print(")");
       print_expression(exp, 15);
-    | [@implicit_arity] CALL(exp, args) =>
+    | CALL(exp, args) =>
       print_expression(exp, 16);
       print("(");
       print_comma_exps(args);
@@ -451,22 +433,22 @@ and print_expression = (exp: expression, lvl: int) => {
       print("sizeof(");
       print_onlytype(typ);
       print(")");
-    | [@implicit_arity] INDEX(exp, idx) =>
+    | INDEX(exp, idx) =>
       print_expression(exp, 16);
       print("[");
       print_expression(idx, 0);
       print("]");
-    | [@implicit_arity] MEMBEROF(exp, fld) =>
+    | MEMBEROF(exp, fld) =>
       print_expression(exp, 16);
       print("." ++ fld);
-    | [@implicit_arity] MEMBEROFPTR(exp, fld) =>
+    | MEMBEROFPTR(exp, fld) =>
       print_expression(exp, 16);
       print("->" ++ fld);
-    | [@implicit_arity] GNU_BODY(decs, stat) => ()
-      /*print("(");
-      print_statement([@implicit_arity] BLOCK(decs, stat));
+    | GNU_BODY((decs, stat)) => ()
+    /*print("(");
+      print_statement(BLOCK(decs, stat));
       print(")");*/
-    | [@implicit_arity] EXPR_LINE(expr, _, _) => print_expression(expr, lvl)
+    | EXPR_LINE(expr, _, _) => print_expression(expr, lvl)
     };
   if (lvl > lvl') {
     print(")");
@@ -474,37 +456,36 @@ and print_expression = (exp: expression, lvl: int) => {
     ();
   };
 }
-
 and print_base_type = typ =>
   switch (typ) {
   | NO_TYPE => ()
   | VOID => print("void")
   | CHAR(sign) => print(get_sign(sign) ++ "char")
-  | [@implicit_arity] INT(size, sign) =>
+  | INT(size, sign) =>
     print(get_sign(sign) ++ get_size(size) ++ "int")
-  | [@implicit_arity] BITFIELD(sign, _) => print(get_sign(sign) ++ "int")
+  | BITFIELD(sign, _) => print(get_sign(sign) ++ "int")
   | FLOAT(size) => print((if (size) {"long "} else {""}) ++ "float")
   | DOUBLE(size) => print((if (size) {"long "} else {""}) ++ "double")
   | NAMED_TYPE(id) => print(id)
-  | [@implicit_arity] ENUM(id, items) => ()
+  | ENUM(id, items) => ()
   /*print_enum(id, items)*/
-  | [@implicit_arity] STRUCT(id, flds) => ()
+  | STRUCT(id, flds) => ()
   /*print_fields("struct " ++ id, flds)*/
-  | [@implicit_arity] UNION(id, flds) => () 
+  | UNION(id, flds) => ()
   /*print_fields("union " ++ id, flds)*/
-  | [@implicit_arity] PROTO(typ, _, _) => print_base_type(typ)
-  | [@implicit_arity] OLD_PROTO(typ, _, _) => print_base_type(typ)
+  | PROTO((typ, _, _)) => print_base_type(typ)
+  | OLD_PROTO((typ, _, _)) => print_base_type(typ)
   | PTR(typ) => print_base_type(typ)
   | RESTRICT_PTR(typ) => print_base_type(typ)
-  | [@implicit_arity] ARRAY(typ, _) => print_base_type(typ)
+  | ARRAY(typ, _) => print_base_type(typ)
   | CONST(typ) => print_base_type(typ)
   | VOLATILE(typ) => print_base_type(typ)
-  | [@implicit_arity] GNU_TYPE(attrs, typ) =>
+  | GNU_TYPE(attrs, typ) =>
     /*print_attributes(attrs);*/
-    print_base_type(typ);
-  | [@implicit_arity] TYPE_LINE(_, _, _type) => print_base_type(_type)
+    print_base_type(typ)
+  | TYPE_LINE(_, _, _type) => print_base_type(_type)
   }
-  and get_storage = sto =>
+and get_storage = sto =>
   switch (sto) {
   | NO_STORAGE => ""
   | AUTO => "auto"
@@ -512,9 +493,7 @@ and print_base_type = typ =>
   | EXTERN => "extern"
   | REGISTER => "register"
   }
-
-
-  and print_single_name = ((typ, sto, name)) => {
+and print_single_name = ((typ, sto, name)) => {
   if (sto != NO_STORAGE) {
     print(get_storage(sto));
     space();
@@ -542,14 +521,14 @@ and print_defs = defs => {
 }
 and print_def = def =>
   switch (def) {
-  | [@implicit_arity] FUNDEF(proto, body) =>
+  | FUNDEF(proto, body) =>
     print_single_name(proto);
     /*let (decs, stat) = body;
-    print_statement([@implicit_arity] BLOCK(decs, stat));*/
+      print_statement(BLOCK(decs, stat));*/
     force_new_line();
 
-  | [@implicit_arity] OLDFUNDEF(proto, decs, body) => ()
-    /*print_single_name(proto);
+  | OLDFUNDEF(proto, decs, body) => ()
+  /*print_single_name(proto);
     force_new_line();
     List.iter(
       dec => {
@@ -560,16 +539,16 @@ and print_def = def =>
       decs,
     );
     let (decs, stat) = body;
-    print_statement([@implicit_arity] BLOCK(decs, stat));
+    print_statement(BLOCK(decs, stat));
     force_new_line();*/
 
   | DECDEF(names) => ()
-    /*print_name_group(names);
+  /*print_name_group(names);
     print(";");
     new_line();*/
 
-  | [@implicit_arity] TYPEDEF(names, attrs) => ()
-    /*if (has_extension(attrs)) {
+  | TYPEDEF(names, attrs) => ()
+  /*if (has_extension(attrs)) {
       print("__extension__");
       space();
     };
@@ -580,150 +559,349 @@ and print_def = def =>
     force_new_line();*/
 
   | ONLYTYPEDEF(names) => ()
-    /*print_name_group(names);
+  /*print_name_group(names);
     print(";");
     new_line();
     force_new_line();*/
-  }
-
-/*let printToplevel = (o, defs) => {
-  out := o;
-  List.iter(def => switch(def) {
-  | FUNDEF(proto, body) =>
-    print_single_name(proto);
-    /*let (decs, stat) = body;*/
-    /*print_statement(BLOCK(decs, stat));*/
-  }, defs)
-};*/
-
-  switch (Frontc.parse_file("/Users/benjamin/Desktop/quantum/libquantum/classic.c", stderr)) {
-  | PARSING_ERROR => print_endline("parse error!")
-  | PARSING_OK(defs) =>
-    out := stdout;
-    /*printToplevel(stdout, file)*/
-    print_defs(defs)
   };
+
+let getCBinding = (def) => {
+  /*let print_single_name = () => {
+  if (sto != NO_STORAGE) {
+    print(get_storage(sto));
+    space();
+  };
+  print_base_type(typ);
+  space();
+  print_name(name);
+};*/
+/*    print_type(_ => print(id), typ);
+    print_pointer(typ);
+    fct();
+    print_array(typ);
+and print_pointer = typ =>
+  switch (typ) {
+  | PTR(typ) =>
+    print_pointer(typ);
+    print("*");
+  | RESTRICT_PTR(typ) =>
+    print_pointer(typ);
+    print("* __restrict");
+    space();
+  | CONST(typ) =>
+    print_pointer(typ);
+    print(" const ");
+  | VOLATILE(typ) =>
+    print_pointer(typ);
+    print(" volatile ");
+  | ARRAY(typ, _) => print_pointer(typ)
+  | _ => /*print_base_type typ*/ ()
+  }*/
+  let rec getBaseType = (typ) => {
+    switch (typ) {
+  | NO_TYPE => "()"
+  | VOID => ("void")
+  | CHAR(sign) => (get_sign(sign) ++ "char")
+  | INT(size, sign) =>
+    (get_sign(sign) ++ get_size(size) ++ "int")
+  | BITFIELD(sign, _) => (get_sign(sign) ++ "int")
+  | FLOAT(size) => ((if (size) {"long "} else {""}) ++ "float")
+  | DOUBLE(size) => ((if (size) {"long "} else {""}) ++ "double")
+  | NAMED_TYPE(id) => (id)
+  | ENUM(id, items) => "NOTHING TO SEE HERE FOLKS"
+  /*print_enum(id, items)*/
+  | STRUCT(id, flds) => "NOTHING TO SEE HERE FOLKS"
+  /*print_fields("struct " ++ id, flds)*/
+  | UNION(id, flds) => "NOTHING TO SEE HERE FOLKS"
+  /*print_fields("union " ++ id, flds)*/
+  | PROTO((typ, _, _)) => getBaseType(typ)
+  | OLD_PROTO((typ, _, _)) => getBaseType(typ)
+  | PTR(typ) => getBaseType(typ)
+  | RESTRICT_PTR(typ) => getBaseType(typ)
+  | ARRAY(typ, _) => getBaseType(typ)
+  | CONST(typ) => getBaseType(typ)
+  | VOLATILE(typ) => getBaseType(typ)
+  | GNU_TYPE(attrs, typ) =>
+    /*print_attributes(attrs);*/
+    getBaseType(typ)
+  | TYPE_LINE(_, _, _type) => getBaseType(_type)
+  }
+};
+let printCommas = (fct, lst) => {
+    let (result, _) = List.fold_left(
+      ((acc, com), elt) => {
+        let comma = if (com) {
+          ", "
+        } else {
+          "";
+        };
+        (Printf.sprintf("%s%s%s", acc, comma, fct(elt)), true);
+      },
+      ("", false),
+      lst,
+    );
+    result
+};
+  let getName = ((id, _typ, _attr, _exp): name) => {
+    id
+  };
+  let getValueArgs = ((id, typ, attr, exp): name) => {
+    switch (typ) {
+    | PROTO((typ', pars, ell)) =>
+      printCommas(((typ, sto, (id, _, _, _) : name)) => {
+        Printf.sprintf("value %s", id)
+      }, pars);
+    | _ => ("WHAT")
+    }
+  };
+  let getUnwrappedArg = (typ, id) => switch (typ) {
+  | INT(NO_SIZE, NO_SIGN) =>
+    Printf.sprintf("Int_val(%s)", id)
+  | PTR(typ) => switch (typ) {
+    | INT(NO_SIZE, NO_SIGN) =>
+      Printf.sprintf("(int *)Field(%s, 0)", id)
+    | _ => "not supported yet"
+    }
+  | _ => "........."
+  };
+  let getUnwrappedArgs = ((id, typ, attr, exp): name) => {
+    switch (typ) {
+    | PROTO((typ', pars, ell)) =>
+      printCommas(((_, _, (id, typ, _, _) : name)) => {
+        getUnwrappedArg(typ, id)
+      }, pars);
+    | _ => ("WHAT")
+    }
+  };
+  let getArgNames = ((id, typ, attr, exp): name) => {
+    switch (typ) {
+    | PROTO((typ', pars, ell)) =>
+      printCommas(((typ, sto, (id, _, _, _) : name)) => {
+        id
+      }, pars);
+    | _ => ("WHAT")
+    }
+  };
+  let getArgNumber = ((id, typ, attr, exp): name) => {
+    switch (typ) {
+    | PROTO((typ', pars, ell)) =>
+      List.length(pars)
+    | _ => -1
+    }
+  };
+  let prefix = "my_";
+  switch (def) {
+  | FUNDEF((typ, sto, name), body) =>
+      switch (typ) {
+      | INT(NO_SIZE, NO_SIGN) =>
+        let functionName = getName(name);
+        let prefixedFunctionName = Printf.sprintf("%s%s", prefix, functionName);
+        let valueArgs = getValueArgs(name);
+        let argNum = getArgNumber(name);
+        let argNames = getArgNames(name);
+        let unwrappedArgs = getUnwrappedArgs(name);
+        Printf.sprintf({|
+          value %s(%s) {
+            return Val_int(%s(%s))
+          }
+        |}, prefixedFunctionName, valueArgs, functionName, unwrappedArgs);
+      | VOID =>
+        let functionName = getName(name);
+        let prefixedFunctionName = Printf.sprintf("%s%s", prefix, functionName);
+        let valueArgs = getValueArgs(name);
+        let argNum = getArgNumber(name);
+        let argNames = getArgNames(name);
+        let unwrappedArgs = getUnwrappedArgs(name);
+        Printf.sprintf({|
+          void %s(%s) {
+            %s(%s)
+          }
+        |}, prefixedFunctionName, valueArgs, functionName, unwrappedArgs);
+      | _ => "not supported yet"
+      /*| NO_TYPE => "()"
+      | VOID => ("void")
+      | CHAR(sign) => (get_sign(sign) ++ "char")
+      | BITFIELD(sign, _) => (get_sign(sign) ++ "int")
+      | FLOAT(size) => ((if (size) {"long "} else {""}) ++ "float")
+      | DOUBLE(size) => ((if (size) {"long "} else {""}) ++ "double")
+      | NAMED_TYPE(id) => (id)
+      | ENUM(id, items) => "NOTHING TO SEE HERE FOLKS"
+      /*print_enum(id, items)*/
+      | STRUCT(id, flds) => "NOTHING TO SEE HERE FOLKS"
+      /*print_fields("struct " ++ id, flds)*/
+      | UNION(id, flds) => "NOTHING TO SEE HERE FOLKS"
+      /*print_fields("union " ++ id, flds)*/
+      | PROTO((typ, _, _)) => getBaseType(typ)
+      | OLD_PROTO((typ, _, _)) => getBaseType(typ)
+      | PTR(typ) => getBaseType(typ)
+      | RESTRICT_PTR(typ) => getBaseType(typ)
+      | ARRAY(typ, _) => getBaseType(typ)
+      | CONST(typ) => getBaseType(typ)
+      | VOLATILE(typ) => getBaseType(typ)
+      | GNU_TYPE(attrs, typ) =>
+        /*print_attributes(attrs);*/
+        getBaseType(typ)
+      | TYPE_LINE(_, _, _type) => getBaseType(_type)*/
+      }
+
+    /*Printf.sprintf({|
+      CAMLprim value %s(%s) {
+        CAMLparam%d(%s);
+        CAMLreturn(%s(%s(%s)));
+      }
+    |},
+      functionName,
+      getValueArgs(name),
+      List.length(result.args),
+      getNameArgs(result.args),
+      getReturnTypeFuncName(result.typedName),
+      result.typedName.name,
+      getNameCArgs(result.args),
+        );*/
+  | _ => failwith("This shouldn't happen")
+};
+};
+let getCBindings = (defs) => {
+  List.fold_left((acc, def) => {
+    Printf.sprintf("%s\n%s", acc, getCBinding(def));
+  }, "", defs)
+};
+
+switch (
+  Frontc.parse_file(
+    "/Users/benjamin/Desktop/quantum/libquantum/measure.c",
+    stderr,
+  )
+) {
+| PARSING_ERROR => print_endline("parse error!")
+| PARSING_OK(defs) =>
+  out := stdout;
+  /*printToplevel(stdout, file)*/
+  print_defs(defs);
+  let generatedCBindings = getCBindings(defs);
+  print_endline("Bindings: \n" ++ generatedCBindings);
+};
 
 /*open Common;
 
-try (
-  {
-    /*let ic = open_in("../libquantum/classic.c");*/
-    let ic = open_in("test.c");
-    let lexbuf = Lexing.from_channel(ic);
-    let tree = My_parser.main(My_lexer.token, lexbuf);
-    print_endline(Printf.sprintf("Found %d functions", List.length(tree)));
-    List.iter(
-      result =>
-        switch (result) {
-        | FunctionDecl(result) =>
-          switch (result.typedName._type) {
-          | Primitive(_type) =>
-            let getValueArgs = args =>
-              List.fold_left(
-                (acc, arg) => acc ++ ", value " ++ arg.name,
-                "value " ++ List.hd(args).name,
-                List.tl(args),
-              );
-            let getNameArgs = args =>
-              List.fold_left(
-                (acc, arg) => acc ++ ", " ++ arg.name,
-                List.hd(args).name,
-                List.tl(args),
-              );
-            let getReturnTypeFuncName = typedName =>
-              switch (typedName._type) {
-              | Primitive(_type) =>
-                if (_type == "int") {
-                  "Val_int";
-                } else {
-                  failwith("Return type not support " ++ _type);
-                }
-              | StructName(_type) =>
-                failwith("Return type not support " ++ _type)
-              };
-            let getNameCArgs = args => {
-              let printType = (acc, arg) =>
-                switch (arg._type) {
+  try (
+    {
+      /*let ic = open_in("../libquantum/classic.c");*/
+      let ic = open_in("test.c");
+      let lexbuf = Lexing.from_channel(ic);
+      let tree = My_parser.main(My_lexer.token, lexbuf);
+      print_endline(Printf.sprintf("Found %d functions", List.length(tree)));
+      List.iter(
+        result =>
+          switch (result) {
+          | FunctionDecl(result) =>
+            switch (result.typedName._type) {
+            | Primitive(_type) =>
+              let getValueArgs = args =>
+                List.fold_left(
+                  (acc, arg) => acc ++ ", value " ++ arg.name,
+                  "value " ++ List.hd(args).name,
+                  List.tl(args),
+                );
+              let getNameArgs = args =>
+                List.fold_left(
+                  (acc, arg) => acc ++ ", " ++ arg.name,
+                  List.hd(args).name,
+                  List.tl(args),
+                );
+              let getReturnTypeFuncName = typedName =>
+                switch (typedName._type) {
                 | Primitive(_type) =>
                   if (_type == "int") {
-                    Printf.sprintf("%sInt_val(%s)", acc, arg.name);
-                  } else if (_type == "int *") {
-                    Printf.sprintf("%sInt_val(Field(%s, 0))", acc, arg.name);
+                    "Val_int";
                   } else {
-                    failwith("Param type not supported " ++ _type);
+                    failwith("Return type not support " ++ _type);
                   }
                 | StructName(_type) =>
-                  failwith("Param type not supported " ++ _type)
+                  failwith("Return type not support " ++ _type)
                 };
+              let getNameCArgs = args => {
+                let printType = (acc, arg) =>
+                  switch (arg._type) {
+                  | Primitive(_type) =>
+                    if (_type == "int") {
+                      Printf.sprintf("%sInt_val(%s)", acc, arg.name);
+                    } else if (_type == "int *") {
+                      Printf.sprintf("%sInt_val(Field(%s, 0))", acc, arg.name);
+                    } else {
+                      failwith("Param type not supported " ++ _type);
+                    }
+                  | StructName(_type) =>
+                    failwith("Param type not supported " ++ _type)
+                  };
 
-              List.fold_left(
-                (acc, arg) => printType(acc ++ ", ", arg),
-                printType("", List.hd(args)),
-                List.tl(args),
-              );
-            };
-            let code =
-              if (_type == "void") {
-                Printf.sprintf(
-                  {|
-                void %s(%s) {
-                  %s(%s);
-                }
-              |},
-                  "my_" ++ result.typedName.name,
-                  getValueArgs(result.args),
-                  result.typedName.name,
-                  getNameCArgs(result.args),
-                );
-              } else {
-                Printf.sprintf(
-                  {|
-                CAMLprim value %s(%s) {
-                  CAMLparam%d(%s);
-                  CAMLreturn(%s(%s(%s)));
-                }
-              |},
-                  "my_" ++ result.typedName.name,
-                  getValueArgs(result.args),
-                  List.length(result.args),
-                  getNameArgs(result.args),
-                  getReturnTypeFuncName(result.typedName),
-                  result.typedName.name,
-                  getNameCArgs(result.args),
+                List.fold_left(
+                  (acc, arg) => printType(acc ++ ", ", arg),
+                  printType("", List.hd(args)),
+                  List.tl(args),
                 );
               };
-            print_endline(code);
-          | StructName(_type) =>
-            failwith("Function return type not supported " ++ _type)
-          }
+              let code =
+                if (_type == "void") {
+                  Printf.sprintf(
+                    {|
+                  void %s(%s) {
+                    %s(%s);
+                  }
+                |},
+                    "my_" ++ result.typedName.name,
+                    getValueArgs(result.args),
+                    result.typedName.name,
+                    getNameCArgs(result.args),
+                  );
+                } else {
+                  Printf.sprintf(
+                    {|
+                  CAMLprim value %s(%s) {
+                    CAMLparam%d(%s);
+                    CAMLreturn(%s(%s(%s)));
+                  }
+                |},
+                    "my_" ++ result.typedName.name,
+                    getValueArgs(result.args),
+                    List.length(result.args),
+                    getNameArgs(result.args),
+                    getReturnTypeFuncName(result.typedName),
+                    result.typedName.name,
+                    getNameCArgs(result.args),
+                  );
+                };
+              print_endline(code);
+            | StructName(_type) =>
+              failwith("Function return type not supported " ++ _type)
+            }
 
-        /*let getType = x =>
-            switch (x._type) {
-            | Primitive(_type) => _type
-            | StructName(_type) => _type
-            };
+          /*let getType = x =>
+              switch (x._type) {
+              | Primitive(_type) => _type
+              | StructName(_type) => _type
+              };
 
-          let _type = getType(result.typedName);
-          print_endline(
-            Printf.sprintf(
-              ">> %s %s(%s)",
-              _type,
-              result.typedName.name,
-              List.fold_left(
-                (acc, arg) => acc ++ getType(arg) ++ " " ++ arg.name ++ ", ",
-                "",
-                result.args,
+            let _type = getType(result.typedName);
+            print_endline(
+              Printf.sprintf(
+                ">> %s %s(%s)",
+                _type,
+                result.typedName.name,
+                List.fold_left(
+                  (acc, arg) => acc ++ getType(arg) ++ " " ++ arg.name ++ ", ",
+                  "",
+                  result.args,
+                ),
               ),
-            ),
-          );*/
+            );*/
 
-        | Skipped => print_endline("skipped ;(")
-        },
-      tree,
-    );
-  }
-) {
-| My_lexer.Eof => exit(0)
-};
-*/
+          | Skipped => print_endline("skipped ;(")
+          },
+        tree,
+      );
+    }
+  ) {
+  | My_lexer.Eof => exit(0)
+  };
+  */
